@@ -89,6 +89,16 @@ connectToWhatsApp()
 
 If the connection is successful, you will see a QR code printed on your terminal screen, scan it with WhatsApp on your phone and you'll be logged in!
 
+**Note:** install `qrcode-terminal` using `yarn add qrcode-terminal` to auto-print the QR to the terminal.
+
+**Note:** the code to support the legacy version of WA Web (pre multi-device) has been removed in v5. Only the standard multi-device connection is now supported. This is done as WA seems to have completely dropped support for the legacy version.
+
+## Connecting native mobile api
+
+Baileys also supports the native mobile API, which allows users to authenticate as a standalone WhatsApp client using their phone number.
+
+Run the [example](Example/example.ts) file with ``--mobile`` cli flag to use the native mobile API.
+
 ## Configuring the Connection
 
 You can configure the connection by passing a `SocketConfig` object.
@@ -314,13 +324,13 @@ const sock = makeWASocket({ })
 // the store can listen from a new socket once the current socket outlives its lifetime
 store.bind(sock.ev)
 
-sock.ev.on('chats.upsert', () => {
+sock.ev.on('chats.set', () => {
     // can use "store.chats" however you want, even after the socket dies out
     // "chats" => a KeyedDB instance
     console.log('got chats', store.chats.all())
 })
 
-sock.ev.on('contacts.upsert', () => {
+sock.ev.on('contacts.set', () => {
     console.log('got contacts', Object.values(store.contacts))
 })
 
@@ -412,8 +422,7 @@ await sock.sendMessage(
     { 
         video: "./Media/ma_gif.mp4", 
         caption: "hello!",
-        gifPlayback: true,
-	ptv: false // if set to true, will send as a `video note`
+        gifPlayback: true
     }
 )
 
@@ -825,7 +834,7 @@ Of course, replace ``` xyz ``` with an actual ID.
     ```
 - To update the Groups Add privacy
     ``` ts
-    const value = 'all' // 'contacts' | 'contact_blacklist'
+    const value = 'all' // 'contacts' | 'contact_blacklist' | 'none'
     await sock.updateGroupsAddPrivacy(value)
     ```
 - To update the Default Disappearing Mode

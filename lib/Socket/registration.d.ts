@@ -1,31 +1,47 @@
 /// <reference types="node" />
-import { Boom } from '@hapi/boom';
-import { proto } from '../../WAProto';
-import { MessageReceiptType, MessageRelayOptions, SocketConfig } from '../Types';
-import { BinaryNode } from '../WABinary';
-export declare const makeMessagesRecvSocket: (config: SocketConfig) => {
-    sendMessageAck: ({ tag, attrs }: BinaryNode) => Promise<void>;
-    sendRetryRequest: (node: BinaryNode, forceIncludeKeys?: boolean) => Promise<void>;
+import { AxiosRequestConfig } from 'axios';
+import { KeyPair, SignedKeyPair, SocketConfig } from '../Types';
+export declare const makeRegistrationSocket: (config: SocketConfig) => {
+    register: (code: string) => Promise<ExistsResponse>;
+    requestRegistrationCode: (registrationOptions?: RegistrationOptions) => Promise<ExistsResponse>;
+    getOrderDetails: (orderId: string, tokenBase64: string) => Promise<import("../Types").OrderDetails>;
+    getCatalog: ({ jid, limit, cursor }: import("../Types").GetCatalogOptions) => Promise<{
+        products: import("../Types").Product[];
+        nextPageCursor: string | undefined;
+    }>;
+    getCollections: (jid?: string | undefined, limit?: number) => Promise<{
+        collections: import("../Types").CatalogCollection[];
+    }>;
+    productCreate: (create: import("../Types").ProductCreate) => Promise<import("../Types").Product>;
+    productDelete: (productIds: string[]) => Promise<{
+        deleted: number;
+    }>;
+    productUpdate: (productId: string, update: import("../Types").ProductUpdate) => Promise<import("../Types").Product>;
+    sendMessageAck: ({ tag, attrs }: import("../WABinary").BinaryNode) => Promise<void>;
+    sendRetryRequest: (node: import("../WABinary").BinaryNode, forceIncludeKeys?: boolean) => Promise<void>;
     rejectCall: (callId: string, callFrom: string) => Promise<void>;
-    getPrivacyTokens: (jids: string[]) => Promise<BinaryNode>;
+    getPrivacyTokens: (jids: string[]) => Promise<import("../WABinary").BinaryNode>;
     assertSessions: (jids: string[], force: boolean) => Promise<boolean>;
-    relayMessage: (jid: string, message: proto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata, statusJidList }: MessageRelayOptions) => Promise<string>;
-    sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: MessageReceiptType) => Promise<void>;
-    sendReceipts: (keys: proto.IMessageKey[], type: MessageReceiptType) => Promise<void>;
-    getButtonArgs: (message: proto.IMessage) => {
+    relayMessage: (jid: string, message: import("../Types").WAProto.IMessage, { messageId: msgId, participant, additionalAttributes, useUserDevicesCache, cachedGroupMetadata, statusJidList }: import("../Types").MessageRelayOptions) => Promise<string>;
+    sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("../Types").MessageReceiptType) => Promise<void>;
+    sendReceipts: (keys: import("../Types").WAProto.IMessageKey[], type: import("../Types").MessageReceiptType) => Promise<void>;
+    getButtonArgs: (message: import("../Types").WAProto.IMessage) => {
         [key: string]: string;
     };
-    readMessages: (keys: proto.IMessageKey[]) => Promise<void>;
+    readMessages: (keys: import("../Types").WAProto.IMessageKey[]) => Promise<void>;
     refreshMediaConn: (forceGet?: boolean) => Promise<import("../Types").MediaConnInfo>;
     waUploadToServer: import("../Types").WAMediaUploadFunction;
     fetchPrivacySettings: (force?: boolean) => Promise<{
         [_: string]: string;
     }>;
-    updateMediaMessage: (message: proto.IWebMessageInfo) => Promise<proto.IWebMessageInfo>;
-    sendMessage: (jid: string, content: import("../Types").AnyMessageContent, options?: import("../Types").MiscMessageGenerationOptions) => Promise<proto.WebMessageInfo | undefined>;
+    updateMediaMessage: (message: import("../Types").WAProto.IWebMessageInfo) => Promise<import("../Types").WAProto.IWebMessageInfo>;
+    sendMessage: (jid: string, content: import("../Types").AnyMessageContent, options?: import("../Types").MiscMessageGenerationOptions) => Promise<import("../Types").WAProto.WebMessageInfo | undefined>;
     groupMetadata: (jid: string) => Promise<import("../Types").GroupMetadata>;
     groupCreate: (subject: string, participants: string[]) => Promise<import("../Types").GroupMetadata>;
     groupLeave: (id: string) => Promise<void>;
+    /** the network code of your mobile network
+     * @see {@link https://de.wikipedia.org/wiki/Mobile_Network_Code}
+     */
     groupUpdateSubject: (jid: string, subject: string) => Promise<void>;
     groupRequestParticipantsList: (jid: string) => Promise<{
         [key: string]: string;
@@ -37,13 +53,13 @@ export declare const makeMessagesRecvSocket: (config: SocketConfig) => {
     groupParticipantsUpdate: (jid: string, participants: string[], action: import("../Types").ParticipantAction) => Promise<{
         status: string;
         jid: string;
-        content: BinaryNode;
+        content: import("../WABinary").BinaryNode;
     }[]>;
     groupUpdateDescription: (jid: string, description?: string | undefined) => Promise<void>;
     groupInviteCode: (jid: string) => Promise<string | undefined>;
     groupRevokeInvite: (jid: string) => Promise<string | undefined>;
     groupAcceptInvite: (code: string) => Promise<string | undefined>;
-    groupAcceptInviteV4: (key: string | proto.IMessageKey, inviteMessage: proto.Message.IGroupInviteMessage) => Promise<string>;
+    groupAcceptInviteV4: (key: string | import("../Types").WAProto.IMessageKey, inviteMessage: import("../Types").WAProto.Message.IGroupInviteMessage) => Promise<string>;
     groupGetInviteInfo: (code: string) => Promise<import("../Types").GroupMetadata>;
     groupToggleEphemeral: (jid: string, ephemeralExpiration: number) => Promise<void>;
     groupSettingUpdate: (jid: string, setting: "announcement" | "locked" | "not_announcement" | "unlocked") => Promise<void>;
@@ -55,7 +71,7 @@ export declare const makeMessagesRecvSocket: (config: SocketConfig) => {
     processingMutex: {
         mutex<T>(code: () => T | Promise<T>): Promise<T>;
     };
-    upsertMessage: (msg: proto.IWebMessageInfo, type: import("../Types").MessageUpsertType) => Promise<void>;
+    upsertMessage: (msg: import("../Types").WAProto.IWebMessageInfo, type: import("../Types").MessageUpsertType) => Promise<void>;
     appPatch: (patchCreate: import("../Types").WAPatchCreate) => Promise<void>;
     sendPresenceUpdate: (type: import("../Types").WAPresence, toJid?: string | undefined) => Promise<void>;
     presenceSubscribe: (toJid: string, tcToken?: Buffer | undefined) => Promise<void>;
@@ -109,16 +125,108 @@ export declare const makeMessagesRecvSocket: (config: SocketConfig) => {
     signalRepository: import("../Types").SignalRepository;
     user: import("../Types").Contact | undefined;
     generateMessageTag: () => string;
-    query: (node: BinaryNode, timeoutMs?: number | undefined) => Promise<BinaryNode>;
+    query: (node: import("../WABinary").BinaryNode, timeoutMs?: number | undefined) => Promise<import("../WABinary").BinaryNode>;
     waitForMessage: <T_2>(msgId: string, timeoutMs?: number | undefined) => Promise<T_2>;
     waitForSocketOpen: () => Promise<void>;
     sendRawMessage: (data: Uint8Array | Buffer) => Promise<void>;
-    sendNode: (frame: BinaryNode) => Promise<void>;
+    sendNode: (frame: import("../WABinary").BinaryNode) => Promise<void>;
     logout: (msg?: string | undefined) => Promise<void>;
     end: (error: Error | undefined) => void;
-    onUnexpectedError: (err: Error | Boom<any>, msg: string) => void;
+    onUnexpectedError: (err: Error | import("@hapi/boom").Boom<any>, msg: string) => void;
     uploadPreKeys: (count?: number) => Promise<void>;
     uploadPreKeysToServerIfRequired: () => Promise<void>;
     requestPairingCode: (phoneNumber: string) => Promise<string>;
     waitForConnectionUpdate: (check: (u: Partial<import("../Types").ConnectionState>) => boolean | undefined, timeoutMs?: number | undefined) => Promise<void>;
 };
+export interface RegistrationData {
+    registrationId: number;
+    signedPreKey: SignedKeyPair;
+    noiseKey: KeyPair;
+    signedIdentityKey: KeyPair;
+    identityId: Buffer;
+    phoneId: string;
+    deviceId: string;
+    backupToken: Buffer;
+}
+export interface RegistrationOptions {
+    /** your phone number */
+    phoneNumber?: string;
+    /** the country code of your phone number */
+    phoneNumberCountryCode: string;
+    /** your phone number without country code */
+    phoneNumberNationalNumber: string;
+    /** the country code of your mobile network
+     * @see {@link https://de.wikipedia.org/wiki/Mobile_Country_Code}
+     */
+    phoneNumberMobileCountryCode: string;
+    /** the network code of your mobile network
+     * @see {@link https://de.wikipedia.org/wiki/Mobile_Network_Code}
+     */
+    phoneNumberMobileNetworkCode: string;
+    /**
+     * How to send the one time code
+     */
+    method?: 'sms' | 'voice' | 'captcha';
+    /**
+     * The captcha code if it was requested
+     */
+    captcha?: string;
+}
+export type RegistrationParams = RegistrationData & RegistrationOptions;
+export declare function registrationParams(params: RegistrationParams): {
+    cc: string;
+    in: string;
+    Rc: string;
+    lg: string;
+    lc: string;
+    mistyped: string;
+    authkey: string;
+    e_regid: string;
+    e_keytype: string;
+    e_ident: string;
+    e_skey_id: string;
+    e_skey_val: string;
+    e_skey_sig: string;
+    fdid: string;
+    network_ratio_type: string;
+    expid: string;
+    simnum: string;
+    hasinrc: string;
+    pid: string;
+    id: string;
+    backup_token: string;
+    token: string;
+    fraud_checkpoint_code: string | undefined;
+};
+/**
+ * Requests a registration code for the given phone number.
+ */
+export declare function mobileRegisterCode(params: RegistrationParams, fetchOptions?: AxiosRequestConfig): Promise<ExistsResponse>;
+export declare function mobileRegisterExists(params: RegistrationParams, fetchOptions?: AxiosRequestConfig): Promise<ExistsResponse>;
+/**
+ * Registers the phone number on whatsapp with the received OTP code.
+ */
+export declare function mobileRegister(params: RegistrationParams & {
+    code: string;
+}, fetchOptions?: AxiosRequestConfig): Promise<ExistsResponse>;
+/**
+ * Encrypts the given string as AEAD aes-256-gcm with the public whatsapp key and a random keypair.
+ */
+export declare function mobileRegisterEncrypt(data: string): string;
+export declare function mobileRegisterFetch(path: string, opts?: AxiosRequestConfig): Promise<ExistsResponse>;
+export interface ExistsResponse {
+    status: 'fail' | 'sent';
+    voice_length?: number;
+    voice_wait?: number;
+    sms_length?: number;
+    sms_wait?: number;
+    reason?: 'incorrect' | 'missing_param' | 'code_checkpoint';
+    login?: string;
+    flash_type?: number;
+    ab_hash?: string;
+    ab_key?: string;
+    exp_cfg?: string;
+    lid?: string;
+    image_blob?: string;
+    audio_blob?: string;
+}
