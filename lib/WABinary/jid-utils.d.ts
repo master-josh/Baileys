@@ -3,13 +3,13 @@ export declare const OFFICIAL_BIZ_JID = "16505361212@c.us";
 export declare const SERVER_JID = "server@c.us";
 export declare const PSA_WID = "0@c.us";
 export declare const STORIES_JID = "status@broadcast";
-export type JidServer = 'c.us' | 'g.us' | 'broadcast' | 's.whatsapp.net' | 'call' | 'lid';
+export type JidServer = 'c.us' | 'g.us' | 'broadcast' | 's.whatsapp.net' | 'call' | 'lid' | 'newsletter';
 export type JidWithDevice = {
     user: string;
     device?: number;
 };
 export type FullJid = JidWithDevice & {
-    server: JidServer | string;
+    server: JidServer;
     domainType?: number;
 };
 export declare const jidEncode: (user: string | number | null, server: JidServer, device?: number, agent?: number) => string;
@@ -26,4 +26,6 @@ export declare const isJidBroadcast: (jid: string | undefined) => boolean | unde
 export declare const isJidGroup: (jid: string | undefined) => boolean | undefined;
 /** is the jid the status broadcast */
 export declare const isJidStatusBroadcast: (jid: string) => boolean;
+/** is the jid a newsletter */
+export declare const isJidNewsletter: (jid: string | undefined) => boolean | undefined;
 export declare const jidNormalizedUser: (jid: string | undefined) => string;
